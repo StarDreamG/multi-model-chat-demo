@@ -25,6 +25,9 @@ app:
   jwt:
     secret: ${JWT_SECRET:replace-this-with-at-least-32-characters-secret-key}
     expire-seconds: ${JWT_EXPIRE_SECONDS:86400}
+  openai-server:
+    api-key: ${OPENAI_SERVER_API_KEY:}
+    owned-by: ${OPENAI_SERVER_OWNED_BY:multi-model-chat-backend}
 
 management:
   endpoints:
