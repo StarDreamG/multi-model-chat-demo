@@ -1,0 +1,419 @@
+﻿openapi: 3.0.3
+info:
+  title: Multi-Model Chat API
+  version: 0.1.0
+  description: MVP API contract for Java backend + Vue frontend.
+servers:
+  - url: http://localhost:8080
+    description: Local dev
+security:
+  - bearerAuth: []
+paths:
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login and get JWT
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Current user profile
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+  /api/models:
+    get:
+      tags: [Model]
+      summary: List enabled models for chat page
+      responses:
+        '200':
+          description: Model list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ModelView'
+  /api/sessions:
+    get:
+      tags: [Session]
+      summary: List user sessions
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: Session list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPage'
+    post:
+      tags: [Session]
+      summary: Create session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSessionRequest'
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionView'
+  /api/sessions/{id}:
+    patch:
+      tags: [Session]
+      summary: Update session title/model
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSessionRequest'
+      responses:
+        '200':
+          description: Updated session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionView'
+    delete:
+      tags: [Session]
+      summary: Delete session
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Deleted
+  /api/sessions/{id}/messages:
+    get:
+      tags: [Session]
+      summary: Load session messages
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Message list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatMessageView'
+  /api/chat/completions:
+    post:
+      tags: [Chat]
+      summary: Non-stream chat completion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+      responses:
+        '200':
+          description: Assistant response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletionResponse'
+  /api/chat/completions/stream:
+    post:
+      tags: [Chat]
+      summary: Stream chat completion via SSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+      responses:
+        '200':
+          description: text/event-stream data chunks
+          content:
+            text/event-stream:
+              schema:
+                type: string
+  /api/admin/models:
+    get:
+      tags: [Admin]
+      summary: List all models
+      responses:
+        '200':
+          description: Model list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ModelAdminView'
+    post:
+      tags: [Admin]
+      summary: Create model config
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelAdminUpsertRequest'
+      responses:
+        '200':
+          description: Saved model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelAdminView'
+  /api/admin/models/{id}:
+    put:
+      tags: [Admin]
+      summary: Update model config
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelAdminUpsertRequest'
+      responses:
+        '200':
+          description: Updated model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelAdminView'
+  /api/admin/models/{id}/enable:
+    patch:
+      tags: [Admin]
+      summary: Enable or disable model
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelAdminView'
+  /api/admin/models/{id}/health-check:
+    post:
+      tags: [Admin]
+      summary: Probe target model endpoint
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Probe result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  message: { type: string }
+                  checkedAt: { type: string, format: date-time }
+  /api/admin/metrics/overview:
+    get:
+      tags: [Admin]
+      summary: Metrics summary in recent 24h
+      responses:
+        '200':
+          description: Metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsOverview'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdPath:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+        format: int64
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string }
+    LoginResponse:
+      type: object
+      properties:
+        token: { type: string }
+        expiresAt: { type: string, format: date-time }
+        user:
+          $ref: '#/components/schemas/UserProfile'
+    UserProfile:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        username: { type: string }
+        displayName: { type: string }
+        roles:
+          type: array
+          items: { type: string }
+    ModelView:
+      type: object
+      properties:
+        modelCode: { type: string }
+        displayName: { type: string }
+        enabled: { type: boolean }
+        tags:
+          type: array
+          items: { type: string }
+    SessionView:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        title: { type: string }
+        modelCode: { type: string }
+        updatedAt: { type: string, format: date-time }
+    SessionPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SessionView'
+        page: { type: integer }
+        pageSize: { type: integer }
+        total: { type: integer, format: int64 }
+    CreateSessionRequest:
+      type: object
+      required: [title, modelCode]
+      properties:
+        title: { type: string }
+        modelCode: { type: string }
+    UpdateSessionRequest:
+      type: object
+      properties:
+        title: { type: string }
+        modelCode: { type: string }
+    ChatMessageInput:
+      type: object
+      required: [role, content]
+      properties:
+        role: { type: string, enum: [system, user, assistant] }
+        content: { type: string }
+    ChatMessageView:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        role: { type: string }
+        content: { type: string }
+        modelCode: { type: string }
+        createdAt: { type: string, format: date-time }
+    ChatCompletionRequest:
+      type: object
+      required: [sessionId, modelCode, messages]
+      properties:
+        sessionId: { type: integer, format: int64 }
+        modelCode: { type: string }
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessageInput'
+        temperature: { type: number, format: float, default: 0.7 }
+        topP: { type: number, format: float, default: 0.9 }
+        maxTokens: { type: integer, default: 1024 }
+    ChatCompletionResponse:
+      type: object
+      properties:
+        requestId: { type: string }
+        message:
+          $ref: '#/components/schemas/ChatMessageView'
+        usage:
+          type: object
+          properties:
+            promptTokens: { type: integer }
+            completionTokens: { type: integer }
+            totalTokens: { type: integer }
+    ModelAdminUpsertRequest:
+      type: object
+      required: [modelCode, displayName, providerType, endpoint]
+      properties:
+        modelCode: { type: string }
+        displayName: { type: string }
+        providerType:
+          type: string
+          enum: [OPENAI_COMPATIBLE, OLLAMA, VLLM, CUSTOM_HTTP]
+        endpoint: { type: string }
+        apiKey: { type: string }
+        timeoutMs: { type: integer }
+        maxQps: { type: integer }
+        enabled: { type: boolean }
+        tags:
+          type: array
+          items: { type: string }
+    ModelAdminView:
+      allOf:
+        - $ref: '#/components/schemas/ModelView'
+        - type: object
+          properties:
+            id: { type: integer, format: int64 }
+            providerType: { type: string }
+            endpoint: { type: string }
+            timeoutMs: { type: integer }
+            maxQps: { type: integer }
+            updatedAt: { type: string, format: date-time }
+    MetricsOverview:
+      type: object
+      properties:
+        window: { type: string, example: last_24h }
+        totalCalls: { type: integer, format: int64 }
+        successRate: { type: number, format: float }
+        avgLatencyMs: { type: number, format: float }
+        byModel:
+          type: array
+          items:
+            type: object
+            properties:
+              modelCode: { type: string }
+              calls: { type: integer, format: int64 }
+              successRate: { type: number, format: float }
+              avgLatencyMs: { type: number, format: float }
