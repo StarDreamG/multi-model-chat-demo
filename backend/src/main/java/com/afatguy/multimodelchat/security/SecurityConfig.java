@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(openAiServerApiKeyFilter, JwtAuthenticationFilter.class)
+            .addFilterBefore(openAiServerApiKeyFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .httpBasic(httpBasic -> httpBasic.disable())
             .formLogin(formLogin -> formLogin.disable());
@@ -50,3 +50,4 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
+
