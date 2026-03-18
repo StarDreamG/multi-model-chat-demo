@@ -69,3 +69,9 @@ VITE_DEMO_PASSWORD=admin123
 
 Current stream endpoint uses backend SSE chunking based on final provider response.
 If you need true upstream token streaming, next iteration can bridge provider stream directly.
+
+## Storage Suggestion
+
+- Default source workspace: `D:\aFatGuyCode`.
+- If E: exists, large assets (models, caches, datasets, archives) can be organized under `E:\` to reduce pressure on `D:`.
+
