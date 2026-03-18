@@ -21,3 +21,9 @@
 - 以上模型已通过 Flyway V3 写入 `model_config` 计划列表。
 - 初始状态为 `enabled=0`，避免未拉取完成时误路由。
 - 实际拉取后可在管理接口中启用对应 `model_code`。
+
+## 当前落地状态（2026-03-18）
+
+- 已可用：`deepseek-coder:1.3b-instruct`（已拉取、已启用，作为 DeepSeek-Coder 优先可用方案）。
+- 计划中（待拉取/待启用）：`gemma2:2b-code`、`deepseek-coder-v2-instruct`、`deepseek-coder-v2-lite-instruct`、`codellama-7b-code-instruct`。
+- 说明：`deepseek-coder-v2*` 当前标签在本机 Ollama 拉取时返回 `manifest not found`，先以 `1.3b-instruct` 保证链路可用。
