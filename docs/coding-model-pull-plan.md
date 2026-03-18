@@ -1,29 +1,48 @@
 ﻿# 编码模型拉取计划（本地 Ollama）
 
-## 当前目标
+## 本轮目标（Phase 2）
 
-优先部署以下编码模型（默认先入库、禁用，按资源逐步拉取并启用）：
+以“统一 OpenAI 兼容 API 可调用”为验收标准，优先扩展更高性能编码模型：
 
-1. gemma2:2b-code
-2. deepseek-coder-v2-instruct
-3. deepseek-coder-v2-lite-instruct
-4. codellama-7b-code-instruct
+1. `deepseek-coder-v2-lite-instruct:7b`
+2. `qwen2.5-coder:7b-instruct`
 
-## 本机建议优先级（GTX 1650 / 4GB）
+## 当前可用基线（2026-03-18）
 
-1. gemma2:2b-code（小模型，先验证链路）
-2. deepseek-coder-v2-lite-instruct（优先尝试 Lite）
-3. codellama-7b-code-instruct（中等规模）
-4. deepseek-coder-v2-instruct（大规模，资源充足再启用）
+- 已上线可用：`deepseek-coder:1.3b-instruct`（`enabled=1`）
+- 已拉取可选：`gemma2:2b`
+- 计划中未启用：
+  - `gemma2:2b-code`
+  - `deepseek-coder-v2-instruct`
+  - `deepseek-coder-v2-lite-instruct`
+  - `codellama-7b-code-instruct`
 
-## 说明
+## 关键约束
 
-- 以上模型已通过 Flyway V3 写入 `model_config` 计划列表。
-- 初始状态为 `enabled=0`，避免未拉取完成时误路由。
-- 实际拉取后可在管理接口中启用对应 `model_code`。
+- 本机显卡为 `GTX 1650 4GB`，不适合稳定承载 `7B` 级模型在线服务。
+- 部分标签在 Ollama 侧可能出现 `manifest not found`，需先做真实标签探测。
 
-## 当前落地状态（2026-03-18）
+## 部署策略
 
-- 已可用：`deepseek-coder:1.3b-instruct`（已拉取、已启用，作为 DeepSeek-Coder 优先可用方案）。
-- 计划中（待拉取/待启用）：`gemma2:2b-code`、`deepseek-coder-v2-instruct`、`deepseek-coder-v2-lite-instruct`、`codellama-7b-code-instruct`。
-- 说明：`deepseek-coder-v2*` 当前标签在本机 Ollama 拉取时返回 `manifest not found`，先以 `1.3b-instruct` 保证链路可用。
+### A. 本机稳定服务（默认）
+
+- 持续使用 `deepseek-coder:1.3b-instruct` 保障可用。
+- `7B` 模型若本机可拉取，仅做功能验证，不作为默认生产路由。
+
+### B. 高性能模型服务（目标）
+
+- 建议将 `7B` 模型部署到高显存节点（建议 `>=16GB VRAM`）。
+- 后端继续通过 `model_config` 管理模型，不改调用接口。
+
+## 执行步骤
+
+1. 探测 `deepseek-coder-v2-lite-instruct:7b` 与 `qwen2.5-coder:7b-instruct` 的可拉取标签。
+2. 拉取成功后写入 `model_config` 并设为 `enabled=1`。
+3. 验证 `/v1/models` 与 `/v1/chat/completions`。
+4. 记录延迟、稳定性与资源占用，决定默认路由。
+
+## 验收标准
+
+- `GET /v1/models` 能看到目标模型。
+- `POST /v1/chat/completions` 指定目标模型返回 200 且内容正常。
+- 与当前 `1.3b` 基线相比，编码任务质量有可感知提升。

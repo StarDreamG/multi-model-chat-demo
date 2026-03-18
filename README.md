@@ -1,4 +1,4 @@
-# Multi-Model Chat Web Demo
+﻿# Multi-Model Chat Web Demo
 
 A frontend-backend separated web application starter:
 
@@ -13,6 +13,8 @@ A frontend-backend separated web application starter:
 - `docs/db-schema-mvp.sql`: MySQL schema design
 - `docs/openapi-mvp.yaml`: API contract (OpenAPI 3.0)
 - `docs/multi-model-chat-prd-and-functional-design.md`: PRD and functional design
+- `docs/coding-model-pull-plan.md`: coding model deployment plan
+- `docs/project-requirements-and-phase2-plan-2026-03-18.md`: project requirements, constraints, goals and phase-2 roadmap
 
 ## Local Run
 
