@@ -72,6 +72,6 @@ If you need true upstream token streaming, next iteration can bridge provider st
 
 ## Storage Suggestion
 
-- Default source workspace: `D:\aFatGuyCode`.
-- If E: exists, large assets (models, caches, datasets, archives) can be organized under `E:\` to reduce pressure on `D:`.
+- If `E:` exists, default source workspace should be `E:\aFatGuyCode` (or another E-drive project root).
+- If `E:` exists, development and large assets should be organized under `E:\`; `D:\aFatGuyCode` is no longer the default.
 
